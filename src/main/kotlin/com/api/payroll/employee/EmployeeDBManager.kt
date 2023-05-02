@@ -100,7 +100,7 @@ class EmployeeDBManager(private val connection: Connection) {
 
         private const val INSERT_EMPLOYEE = "CALL create_employee(?, ?, ?);"
         private const val INSERT_SALARY = "CALL insert_salary(?, ?, ?, ?, ?, ?, ?, ?);"
-        private const val SELECT_EMPLOYEE_BY_ID = "SELECT * FROM employees WHERE employee_id = ?"
+        private const val SELECT_EMPLOYEE_BY_ID = "SELECT * FROM employees e INNER JOIN salary s on e.employee_id = s.employee_id WHERE e.employee_id = ?"
         private const val CREATE_EMPLOYEE_WITH_SALARY = "with rows as (\n" +
                 "INSERT INTO employees (name, rol, start_date) VALUES (?, ?, ?) returning employee_id\n" +
                 ")\n" +
@@ -186,7 +186,15 @@ class EmployeeDBManager(private val connection: Connection) {
                 resultSet.getString("name"),
                 resultSet.getString("rol"),
                 resultSet.getString("start_date"),
-                salary = Salary(1,200.0F, 80F, 56, 36.0F, 34.0F, 45F,"1990-02-02")
+                salary = Salary(
+                    resultSet.getInt("employee_id"),
+                    resultSet.getFloat("base_salary"),
+                    resultSet.getFloat("hours_worked"),
+                    resultSet.getInt("deliveries_completed"),
+                    resultSet.getFloat("bonus_cargo"),
+                    resultSet.getFloat("tax_isr"),
+                    resultSet.getFloat("vales_despensa"),
+                    resultSet.getString("payment_date"))
             )
             LOGGER.trace(employee.toString())
             return@withContext employee
