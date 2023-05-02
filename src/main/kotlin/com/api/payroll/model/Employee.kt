@@ -7,5 +7,6 @@ data class Employee(
     val id: Int = -1,
     val name: String = " ",
     val rol: String = " ",
-    val startDate: String = " "
+    val startDate: String = " ",
+    val salary: Salary
 )

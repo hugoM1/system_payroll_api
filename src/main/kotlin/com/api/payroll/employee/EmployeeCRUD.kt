@@ -1,7 +1,9 @@
 package com.api.payroll.employee
 
+import com.api.payroll.model.Employee
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.sql.Connection
@@ -12,6 +14,11 @@ fun Application.employeeCRUD() {
     val employeeManager = EmployeeDBManager(dbConnection)
     routing {
         // Create Employee
+        post("/employees"){
+            val employee = call.receive<Employee>()
+            val employeeCreated = employeeManager.createEmployeeWithSalary(employee)
+            call.respond(HttpStatusCode.Created, employeeCreated)
+        }
 
         // Search Employee By ID
         get("/employees/{id}"){

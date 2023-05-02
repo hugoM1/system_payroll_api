@@ -6,6 +6,8 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
+import java.sql.Date
+import java.text.SimpleDateFormat
 
 class EmployeeDBManager(private val connection: Connection) {
     private val LOGGER = KtorSimpleLogger("PAYROLL")
@@ -99,6 +101,18 @@ class EmployeeDBManager(private val connection: Connection) {
         private const val INSERT_EMPLOYEE = "CALL create_employee(?, ?, ?);"
         private const val INSERT_SALARY = "CALL insert_salary(?, ?, ?, ?, ?, ?, ?, ?);"
         private const val SELECT_EMPLOYEE_BY_ID = "SELECT * FROM employees WHERE employee_id = ?"
+        private const val CREATE_EMPLOYEE_WITH_SALARY = "with rows as (\n" +
+                "INSERT INTO employees (name, rol, start_date) VALUES (?, ?, ?) returning employee_id\n" +
+                ")\n" +
+                "INSERT INTO salary(employee_id,\n" +
+                " base_salary,\n" +
+                "\thours_worked,\n" +
+                "\tdeliveries_completed,\n" +
+                "\tbonus_cargo,\n" +
+                "\ttax_isr,\n" +
+                "\tvales_despensa,\n" +
+                "\tpayment_date)\n" +
+                "select employee_id , ?, ?, ?, ?, ?, ?, ? from rows;"
 //        private const val SELECT_CITY_BY_ID = "SELECT name, population FROM cities WHERE id = ?"
 //        private const val INSERT_CITY = "INSERT INTO cities (name, population) VALUES (?, ?)"
 //        private const val INSERT_CITY_PROCEDURE = "CALL insert_city(?, ?);"
@@ -139,6 +153,27 @@ class EmployeeDBManager(private val connection: Connection) {
         return@withContext salary
     }
 
+    /**
+     * Creates new employees and sets its current salary and dates
+     * @param @Employee
+     * @return the new created @Employee
+     */
+    suspend fun createEmployeeWithSalary(employee: Employee): Employee = withContext(Dispatchers.IO){
+        val statement = connection.prepareStatement(CREATE_EMPLOYEE_WITH_SALARY)
+        statement.setString(1, employee.name)
+        statement.setString(2, employee.rol)
+        statement.setDate(3, Date.valueOf(employee.startDate))
+        statement.setFloat(4, employee.salary.baseSalary)
+        statement.setFloat(5, employee.salary.hoursWorked)
+        statement.setInt(6, employee.salary.deliveriesCompleted)
+        statement.setFloat(7, employee.salary.taxISR)
+        statement.setFloat(8, employee.salary.bonusCargo)
+        statement.setFloat(9, employee.salary.valesDespensa)
+        statement.setDate(10, Date.valueOf(employee.salary.paymentDate))
+        statement.executeUpdate()
+        return@withContext employee
+    }
+
     suspend fun searchEmployeeById(employeeId: Int): Employee = withContext(Dispatchers.IO) {
         val statement = connection.prepareStatement(SELECT_EMPLOYEE_BY_ID)
         statement.setInt(1, employeeId)
@@ -150,7 +185,8 @@ class EmployeeDBManager(private val connection: Connection) {
                 resultSet.getInt("employee_ID"),
                 resultSet.getString("name"),
                 resultSet.getString("rol"),
-                resultSet.getString("start_date")
+                resultSet.getString("start_date"),
+                salary = Salary(1,200.0F, 80F, 56, 36.0F, 34.0F, 45F,"1990-02-02")
             )
             LOGGER.trace(employee.toString())
             return@withContext employee
