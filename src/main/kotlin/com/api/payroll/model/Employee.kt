@@ -8,5 +8,6 @@ data class Employee(
     val name: String = " ",
     val rol: String = " ",
     val startDate: String = " ",
-    val salary: Salary
+    var salary: Salary = Salary(),
+    var deliveries: ArrayList<Delivery> = arrayListOf()
 )

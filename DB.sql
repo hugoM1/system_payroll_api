@@ -37,6 +37,17 @@ CREATE TABLE salary (
         REFERENCES employees(employee_id)
 );
 
+CREATE TABLE employee_deliveries(
+	delivery_id INT GENERATED ALWAYS AS IDENTITY,
+	employee_id INT NOT NULL,
+	deliveries_quantity INT NOT NULL,
+	delivery_date DATE NOT NULL,
+	PRIMARY KEY(delivery_id),
+	CONSTRAINT fk_employee
+		FOREIGN KEY(employee_id)
+			REFERENCES employees(employee_id)
+);
+
 CREATE TABLE money_loans (
   id SERIAL PRIMARY KEY,
   id_employee INT NOT NULL,
@@ -95,7 +106,8 @@ CREATE OR REPLACE PROCEDURE insert_salary(
 	bonus_cargo IN salary.bonus_cargo%TYPE,
 	tax_isr IN salary.tax_isr%TYPE,
 	vales_despensa IN salary.vales_despensa%TYPE,
-	payment_date IN salary.payment_date%TYPE
+	payment_date IN salary.payment_date%TYPE,
+	total_salary IN salary.total_salary%TYPE
 )
 
 LANGUAGE plpgsql
@@ -109,7 +121,8 @@ BEGIN
 	bonus_cargo,
 	tax_isr,
 	vales_despensa,
-	payment_date  
+	payment_date,
+    total_salary
   ) VALUES (
  employee_id,
  base_salary,
@@ -118,10 +131,11 @@ BEGIN
 	bonus_cargo,
 	tax_isr,
 	vales_despensa,
-	payment_date
+	payment_date,
+    total_salary
   ) ;
   COMMIT;
 END;$$;
 
-CALL insert_salary(1, 20.0, 8,4,34.0,4.0,45,'1922-02-02');
+CALL insert_salary(1, 20.0, 8, 4, 34.0, 4.0, 45, '1922-02-02');
 select * from salary;

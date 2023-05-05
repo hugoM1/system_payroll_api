@@ -11,5 +11,6 @@ data class Salary(
     val bonusCargo: Float = 0.0F,
     val taxISR: Float = 0.0F,
     val valesDespensa: Float = 0.0F,
-    val paymentDate: String = " "
+    val paymentDate: String = " ",
+    val totalSalary: Float = 0.0F
 )

@@ -14,10 +14,16 @@ fun Application.employeeCRUD() {
     val employeeManager = EmployeeDBManager(dbConnection)
     routing {
         // Create Employee
-        post("/employees"){
+        post("/employees/"){
             val employee = call.receive<Employee>()
             val employeeCreated = employeeManager.createEmployeeWithSalary(employee)
-            call.respond(HttpStatusCode.Created, employeeCreated)
+            call.respond(HttpStatusCode.Created, employee)
+        }
+
+        post("employees/update"){
+            val employee = call.receive<Employee>()
+            employeeManager.updateEmployee(employee)
+            call.respond(HttpStatusCode.OK, employee)
         }
 
         // Search Employee By ID
@@ -27,6 +33,15 @@ fun Application.employeeCRUD() {
                 val employee = employeeManager.searchEmployeeById(id)
                 call.respond(HttpStatusCode.OK, employee)
             } catch (e: Exception) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        get("/employees/all/recent"){
+            try {
+                val res = employeeManager.returnRecentEmployees()
+                call.respond(HttpStatusCode.OK, res)
+            }catch (e: Exception){
                 call.respond(HttpStatusCode.NotFound)
             }
         }
